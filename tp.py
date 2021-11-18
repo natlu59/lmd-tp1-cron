@@ -52,6 +52,40 @@ class Cron:
                self.iterateCron(self._months) + self.iterateCron \
                    (self._daysOfWeek) + self._funk
 
+    def iterateString(self, var, varName):
+        res = ""
+        for m in var:
+            if isinstance(m, int):
+                res += varName + ' ' + str(m)
+            elif isinstance(m, tuple):
+                res += 'every ' + varName + ' from ' + m[0] + ' through ' + m[1]
+            elif isinstance(m, list):
+                res += self.iterateString(self, m)
+            elif m == '*':
+                res += 'every ' + varName
+            
+            if len(var) > 1 and m == var[-2]:
+                res += ' and'
+            elif m != var[-1]:
+                res += ','
 
-cron=Cron().minutes(12).hours(23)
+            res += ' '
+        return res
+    
+    def generateString(self):
+        res = ''
+        if self._minutes:
+            res += "At "    + self.iterateString(self._minutes    , 'minute'      )
+        if self._hours:
+            res += "past " + self.iterateString(self._hours      , 'hour'        )
+        if self._daysOfMonth:
+            res += "on "   + self.iterateString(self._daysOfMonth, 'day-of-month')
+        if self._months:
+            res += "in "   + self.iterateString(self._months     , 'month'       )
+        return res
+
+
+
+cron = Cron().daysOfMonth(2).minutes(15).hours(('0','6')).daysOfMonth('*').minutes(45)
 print(cron.generateCron())
+print(cron.generateString())
