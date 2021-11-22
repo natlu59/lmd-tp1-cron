@@ -1,35 +1,78 @@
+from typing import ItemsView
+
+
 class Cron:
 
     def __init__(self):
-        self._funk = ""
-        self._daysOfWeek = []
-        self._months = []
+        self._minutes     = []
+        self._hours       = []
         self._daysOfMonth = []
-        self._hours = []
-        self._minutes = []
+        self._months      = []
+        self._daysOfWeek  = []
+        self._func        = ""
 
-    def funk(self, s):
-        self._funk = s
-        return self
-
-    def daysOfWeek(self, m):
-        self._daysOfWeek.append(m)
-        return self
-
-    def months(self, m):
-        self._months.append(m)
-        return self
-
-    def daysOfMonth(self, m):
-        self._daysOfMonth.append(m)
+    def minutes(self, m):
+        if isinstance(m, list):
+            for mm in m:
+                self.minutes(mm)
+        if isinstance(m, int):
+            assert(m == "*" or 0 <= m <= 59)
+        if isinstance(m, tuple):
+            assert(isinstance(m[0], int) and isinstance(m[1], int))
+            assert(0 <= m[0] <= 59 or 0 <= m[1] <= 59)
+        self._minutes.append(m)
         return self
 
     def hours(self, m):
+        if isinstance(m, list):
+            for mm in m:
+                self.hours(mm)
+        if isinstance(m, int):
+            assert(m == '*' or 0 <= m <= 23)
+        if isinstance(m, tuple):
+            assert(isinstance(m[0], int) and isinstance(m[1], int))
+            assert(0 <= m[0] <= 23 or 0 <= m[1] <= 23)
         self._hours.append(m)
         return self
 
-    def minutes(self, m):
-        self._minutes.append(m)
+    def daysOfMonth(self, m):
+        if isinstance(m, list):
+            for mm in m:
+                self.daysOfMonth(mm)
+        if isinstance(m, int):
+            assert(m == "*" or 1 <= m <= 31)
+        if isinstance(m, tuple):
+            assert(isinstance(m[0], int) and isinstance(m[1], int))
+            assert(1 <= m[0] <= 31 or 1 <= m[1] <= 31)
+        self._daysOfMonth.append(m)
+        return self
+    
+    def months(self, m):
+        if isinstance(m, list):
+            for mm in m:
+                self.months(mm)
+        if isinstance(m, int):
+            assert(m == "*" or 1 <= m <= 12)
+        if isinstance(m, tuple):
+            assert(isinstance(m[0], int) and isinstance(m[1], int))
+            assert(1 <= m[0] <= 12 or 1 <= m[1] <= 12)
+        self._months.append(m)
+        return self
+
+    def daysOfWeek(self, m):
+        if isinstance(m, list):
+            for mm in m:
+                self.daysOfWeek(mm)
+        if isinstance(m, int):
+            assert(m == "*" or 1 <= m <= 7)
+        if isinstance(m, tuple):
+            assert(isinstance(m[0], int) and isinstance(m[1], int))
+            assert(1 <= m[0] <= 7 or 1 <= m[1] <= 7)
+        self._daysOfWeek.append(m)
+        return self
+
+    def func(self, s):
+        self._func = s
         return self
 
     def iterateCron(self, var):
@@ -38,19 +81,24 @@ class Cron:
             if isinstance(m, int):
                 res = res + str(m)
             elif isinstance(m, tuple):
-                res = res + m[0] + '-' + m[1]
-            elif isinstance(m, list):
-                for mm in m:
-                    res = res + mm
+                res = res + str(m[0]) + '-' + str(m[1])
             elif m == '*':
                 res = res + '*'
             res = res + ','
         return res[:-1] + ' '
 
     def generateCron(self):
-        return self.iterateCron(self._minutes) + self.iterateCron(self._hours) + self.iterateCron(self._daysOfMonth) + \
-               self.iterateCron(self._months) + self.iterateCron \
-                   (self._daysOfWeek) + self._funk
+        res = ''
+        if self._minutes and self._hours and self._daysOfMonth and self._months and self._daysOfWeek and self._func:
+            res += self.iterateCron(self._minutes)
+            res += self.iterateCron(self._hours)
+            res += self.iterateCron(self._daysOfMonth)
+            res += self.iterateCron(self._months)
+            res += self.iterateCron(self._daysOfWeek)
+            res += self._func
+        else:
+            res += 'The fields minutes, hours, daysOfMonth, months, daysOfWeek and func should not be empty'
+        return res
 
     def iterateString(self, var, varName):
         res = ""
@@ -58,34 +106,41 @@ class Cron:
             if isinstance(m, int):
                 res += varName + ' ' + str(m)
             elif isinstance(m, tuple):
-                res += 'every ' + varName + ' from ' + m[0] + ' through ' + m[1]
-            elif isinstance(m, list):
-                res += self.iterateString(self, m)
+                res += 'every ' + varName + ' from ' + str(m[0]) + ' through ' + str(m[1])
             elif m == '*':
                 res += 'every ' + varName
-            
-            if len(var) > 1 and m == var[-2]:
-                res += ' and'
-            elif m != var[-1]:
-                res += ','
-
+            # import ipdb; ipdb.set_trace()
             res += ' '
         return res
     
     def generateString(self):
         res = ''
-        if self._minutes:
-            res += "At "    + self.iterateString(self._minutes    , 'minute'      )
-        if self._hours:
+        if self._minutes and self._hours and self._daysOfMonth and self._months and self._daysOfWeek and self._func:
+            res += "At "   + self.iterateString(self._minutes    , 'minute'      )
             res += "past " + self.iterateString(self._hours      , 'hour'        )
-        if self._daysOfMonth:
             res += "on "   + self.iterateString(self._daysOfMonth, 'day-of-month')
-        if self._months:
+            res += "on "   + self.iterateString(self._daysOfWeek , 'days-of-Week')
             res += "in "   + self.iterateString(self._months     , 'month'       )
+        else:
+            res += 'The fields minutes, hours, daysOfMonth, months, daysOfWeek and func should not be empty'
         return res
 
 
 
-cron = Cron().daysOfMonth(2).minutes(15).hours(('0','6')).daysOfMonth('*').minutes(45)
+cron = Cron()
+
+
+
+(   cron.minutes(2)
+        .hours([(0,6), 15, 20])            
+        .daysOfMonth(4)                        
+        .months(5)
+        .daysOfWeek(6)                      
+        .func("Florian_qui_mange_un_kebab.sh")
+)
+
+
+
 print(cron.generateCron())
+print()
 print(cron.generateString())
