@@ -1,25 +1,75 @@
 
-
-MIN = 0
-HOUR = 1
-DAY_M = 2
-MONTH = 3
-DAY_W = 4
-
 RANGE = 0
 STEP = 1
+
+class CronRange:
+    def __init__(self,_from,_to):
+        self._from = _from
+        self._to = _to
+
+
+class CronDateEntry:
+    def __init__(self,_max,_range = None, _step = 1):
+        if _range and _range._to <= _max:
+            self._range = _range
+        else:
+            self._range = CronRange(0, _max)
+        self._step = _step
+
+    def __str__(self):
+        pass
+
+class Minute(CronDateEntry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(60, *args, **kwargs)
+class Hour(CronDateEntry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(24, *args, **kwargs)
+class DayM(CronDateEntry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(31, *args, **kwargs)
+class DayW(CronDateEntry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(7, *args, **kwargs)
+class Month(CronDateEntry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(12, *args, **kwargs)
+
+
 
 class Cron:
 
     def __init__(self):
-        self._cron_array = [[],[],[],[],[]]
-        self._timing_array = []
+        self._cron_dict = {Minute : [],
+                        Hour : [],
+                        DayM : [],
+                        DayW : [],
+                        Month : []}
+
 
     ##MIN
-    def fromToMin(self,_from,_to):
-        self._cron_array[MIN].append({RANGE: [_from,_to],STEP: None})
+    def fromTo(self,_from,_to,_type):
+        self._cron_dict[_type].append(_type(_range=CronRange(_from, _to)))
         return self
-    def everyMin(self,x):
+
+    def every(self,freq,_type):
+        self._cron_dict[_type].append(_type(_step=freq))
+        return self
+
+    def at(self,_from,_to,_type):
+        self._cron_dict[_type].append(_type(CronRange(_from, _to)))
+        return self
+
+
+
+
+
+
+
+
+
+
+    def every(self,x): 
         if len(self._cron_array[MIN]) == 0:
             self._cron_array[MIN].append({RANGE: None,STEP: x})
         else:
@@ -28,58 +78,7 @@ class Cron:
     def atMin(self,x):
         self._cron_array[MIN].append({RANGE: [x],STEP: None})
         return self
-    ##HOUR
-    def fromToHour(self,_from,_to):
-        self._cron_array[HOUR].append({RANGE: [_from,_to],STEP: None})
-        return self
-    def everyHour(self,x):
-        if len(self._cron_array[HOUR]) == 0:
-            self._cron_array[HOUR].append({RANGE: None,STEP: x})
-        else:
-            self._cron_array[HOUR][-1][STEP] = x
-        return self
-    def atHour(self,x):
-        self._cron_array[HOUR].append({RANGE: [x],STEP: None})
-        return self
-    ##DAY_M
-    def fromToDayM(self,_from,_to):
-        self._cron_array[DAY_M].append({RANGE: [_from,_to],STEP: None})
-        return self
-    def everyDayM(self,x):
-        if len(self._cron_array[DAY_M]) == 0:
-            self._cron_array[DAY_M].append({RANGE: None,STEP: x})
-        else:
-            self._cron_array[DAY_M][-1][STEP] = x
-        return self
-    def atDayM(self,x):
-        self._cron_array[DAY_M].append({RANGE: [x],STEP: None})
-        return self
-    ##MONTH
-    def fromToMonth(self,_from,_to):
-        self._cron_array[MONTH].append({RANGE: [_from,_to],STEP: None})
-        return self
-    def everyMonth(self,x):
-        if len(self._cron_array[MONTH]) == 0:
-            self._cron_array[MONTH].append({RANGE: None,STEP: x})
-        else:
-            self._cron_array[MONTH][-1][STEP] = x
-        return self
-    def atMonth(self,x):
-        self._cron_array[MONTH].append({RANGE: [x],STEP: None})
-        return self
-    ##DAY_W
-    def fromToDayW(self,_from,_to):
-        self._cron_array[DAY_W].append({RANGE: [_from,_to],STEP: None})
-        return self
-    def everyDayW(self,x):
-        if len(self._cron_array[DAY_W]) == 0:
-            self._cron_array[DAY_W].append({RANGE: None,STEP: x})
-        else:
-            self._cron_array[DAY_W][-1][STEP] = x
-        return self
-    def atDayW(self,x):
-        self._cron_array[DAY_W].append({RANGE: [x],STEP: None})
-        return self
+    
 
     def done(self):
         _type = 0
@@ -115,8 +114,7 @@ class Cron:
         return self
 
     def checkDate(self,m,h,dm,dw,mo):
-        
-        if m any(m in r for r in self.hours)
+        if len(self._timing_array[MONTH])==0 or mo in self._timing_array[MONTH]:
             if len(self._timing_array[DAY_W])==0 or dw in self._timing_array[DAY_W]:
                 if len(self._timing_array[DAY_M])==0 or dm in self._timing_array[DAY_M]:
                     if len(self._timing_array[HOUR])==0 or h in self._timing_array[HOUR]:
